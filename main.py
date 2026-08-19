@@ -1,6 +1,15 @@
 import sys
-from core.database import Database
-from PySide6.QtWidgets import QApplication, QLabel, QMainWindow
+
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QApplication,
+    QLabel,
+    QMainWindow,
+    QListWidget,
+    QStackedWidget,
+    QHBoxLayout,
+    QWidget,
+)
 
 
 class MainWindow(QMainWindow):
@@ -8,18 +17,69 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("AtCoder Python Manager")
-        self.resize(800, 600)
+        self.resize(1000, 700)
 
-        label = QLabel("AtCoder Python Manager")
-        label.setStyleSheet("font-size: 24px;")
+        self.create_menu()
+        self.create_ui()
 
-        self.setCentralWidget(label)
+    def create_menu(self):
+        menu_bar = self.menuBar()
+
+        file_menu = menu_bar.addMenu("File")
+        file_menu.addAction("Exit")
+
+        help_menu = menu_bar.addMenu("Help")
+        help_menu.addAction("About")
+
+    def create_ui(self):
+        # 左側ナビゲーション
+        self.navigation = QListWidget()
+        self.navigation.addItems([
+            "Dashboard",
+            "Templates",
+            "Snippets",
+            "Settings",
+        ])
+
+        self.navigation.setFixedWidth(180)
+
+        # メインエリア
+        self.stack = QStackedWidget()
+
+        pages = [
+            "Dashboard",
+            "Templates",
+            "Snippets",
+            "Settings",
+        ]
+
+        for page_name in pages:
+            label = QLabel(page_name)
+            label.setStyleSheet("font-size: 24px;")
+            label.setAlignment(Qt.AlignCenter)
+
+            page = QWidget()
+            layout = QHBoxLayout(page)
+            layout.addWidget(label)
+
+            self.stack.addWidget(page)
+
+        # 左側とメインエリアを配置
+        central_widget = QWidget()
+        layout = QHBoxLayout(central_widget)
+
+        layout.addWidget(self.navigation)
+        layout.addWidget(self.stack)
+
+        self.setCentralWidget(central_widget)
+
+        # ナビゲーションとメインエリアを連動
+        self.navigation.currentRowChanged.connect(
+            self.stack.setCurrentIndex
+        )
 
 
 def main():
-    db = Database()
-    db.initialize()
-
     app = QApplication(sys.argv)
 
     window = MainWindow()
