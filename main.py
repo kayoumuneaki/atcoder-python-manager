@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QWidget,
 )
+from ui.dashboard import DashboardWidget
 
 
 class MainWindow(QMainWindow):
@@ -46,14 +47,14 @@ class MainWindow(QMainWindow):
         # メインエリア
         self.stack = QStackedWidget()
 
-        pages = [
-            "Dashboard",
+        dashboard = DashboardWidget()
+        self.stack.addWidget(dashboard)
+
+        for page_name in [
             "Templates",
             "Snippets",
             "Settings",
-        ]
-
-        for page_name in pages:
+        ]:
             label = QLabel(page_name)
             label.setStyleSheet("font-size: 24px;")
             label.setAlignment(Qt.AlignCenter)
