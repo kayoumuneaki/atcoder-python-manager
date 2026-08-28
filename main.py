@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 from ui.dashboard import DashboardWidget
+from ui.settings import SettingsWidget
 
 
 class MainWindow(QMainWindow):
@@ -53,7 +54,6 @@ class MainWindow(QMainWindow):
         for page_name in [
             "Templates",
             "Snippets",
-            "Settings",
         ]:
             label = QLabel(page_name)
             label.setStyleSheet("font-size: 24px;")
@@ -64,6 +64,9 @@ class MainWindow(QMainWindow):
             layout.addWidget(label)
 
             self.stack.addWidget(page)
+
+        settings = SettingsWidget()
+        self.stack.addWidget(settings)
 
         # 左側とメインエリアを配置
         central_widget = QWidget()
