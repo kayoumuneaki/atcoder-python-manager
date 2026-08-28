@@ -10,29 +10,34 @@ class Database:
 
     def initialize(self):
         with self.connect() as connection:
-            connection.execute("""
-                CREATE TABLE IF NOT EXISTS settings (
-                    key TEXT PRIMARY KEY,
-                    value TEXT
-                )
-            """)
+            self.create_settings_table(connection)
+            self.create_snippets_table(connection)
+            self.create_test_cases_table(connection)
 
-            connection.execute("""
-                CREATE TABLE IF NOT EXISTS snippets (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    title TEXT NOT NULL,
-                    category TEXT,
-                    code TEXT NOT NULL
-                )
-            """)
+    def create_settings_table(self, connection):
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS settings (
+                key TEXT PRIMARY KEY,
+                value TEXT
+            )
+        """)
 
-            connection.execute("""
-                CREATE TABLE IF NOT EXISTS test_cases (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    problem TEXT NOT NULL,
-                    input TEXT,
-                    output TEXT
-                )
-            """)
+    def create_snippets_table(self, connection):
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS snippets (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                category TEXT,
+                code TEXT NOT NULL
+            )
+        """)
 
-            connection.commit()
+    def create_test_cases_table(self, connection):
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS test_cases (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                problem TEXT NOT NULL,
+                input TEXT,
+                output TEXT
+            )
+        """)

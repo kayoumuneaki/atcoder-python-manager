@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
 )
 from ui.dashboard import DashboardWidget
 from ui.settings import SettingsWidget
+from core.database import Database
 
 
 class MainWindow(QMainWindow):
@@ -84,6 +85,9 @@ class MainWindow(QMainWindow):
 
 
 def main():
+    db = Database()
+    db.initialize()
+
     app = QApplication(sys.argv)
 
     window = MainWindow()
