@@ -1,5 +1,3 @@
-import json
-
 from PySide6.QtWidgets import (
     QFileDialog,
     QFormLayout,
@@ -11,10 +9,14 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from core.config import Config
+
 
 class SettingsWidget(QWidget):
     def __init__(self):
         super().__init__()
+
+        self.config = Config()
 
         self.username_input = QLineEdit()
         self.python_path_input = QLineEdit()
@@ -36,7 +38,6 @@ class SettingsWidget(QWidget):
             self.python_path_input
         )
 
-        # 作業フォルダ
         folder_layout = QHBoxLayout()
 
         folder_layout.addWidget(
@@ -55,7 +56,6 @@ class SettingsWidget(QWidget):
             folder_layout
         )
 
-        # 保存ボタン
         save_button = QPushButton("Save")
         save_button.clicked.connect(
             self.save_settings
@@ -83,17 +83,7 @@ class SettingsWidget(QWidget):
             "working_folder": self.working_folder_input.text(),
         }
 
-        with open(
-            "config.json",
-            "w",
-            encoding="utf-8"
-        ) as file:
-            json.dump(
-                settings,
-                file,
-                ensure_ascii=False,
-                indent=4
-            )
+        self.config.save(settings)
 
         QMessageBox.information(
             self,
@@ -102,16 +92,7 @@ class SettingsWidget(QWidget):
         )
 
     def load_settings(self):
-        try:
-            with open(
-                "config.json",
-                "r",
-                encoding="utf-8"
-            ) as file:
-                settings = json.load(file)
-
-        except (FileNotFoundError, json.JSONDecodeError):
-            return
+        settings = self.config.load()
 
         self.username_input.setText(
             settings.get("atcoder_username", "")
