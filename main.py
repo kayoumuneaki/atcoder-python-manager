@@ -16,6 +16,7 @@ from core.database import Database
 from ui.template import TemplateWidget
 from ui.snippets import SnippetsWidget
 from ui.runner import RunnerWidget
+from ui.editor import EditorWidget
 
 
 class MainWindow(QMainWindow):
@@ -43,6 +44,7 @@ class MainWindow(QMainWindow):
         self.navigation.addItems([
             "Dashboard",
             "Runner",
+            "Editor",
             "Templates",
             "Snippets",
             "Settings",
@@ -60,6 +62,10 @@ class MainWindow(QMainWindow):
         # Runner
         runner_widget = RunnerWidget()
         self.stack.addWidget(runner_widget)
+
+        # Editor
+        editor_widget = EditorWidget()
+        self.stack.addWidget(editor_widget)
 
         # Templates
         template_widget = TemplateWidget()
