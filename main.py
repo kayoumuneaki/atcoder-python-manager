@@ -14,6 +14,8 @@ from ui.dashboard import DashboardWidget
 from ui.settings import SettingsWidget
 from core.database import Database
 from ui.template import TemplateWidget
+from ui.snippets import SnippetsWidget
+from ui.runner import RunnerWidget
 
 
 class MainWindow(QMainWindow):
@@ -40,6 +42,7 @@ class MainWindow(QMainWindow):
         self.navigation = QListWidget()
         self.navigation.addItems([
             "Dashboard",
+            "Runner",
             "Templates",
             "Snippets",
             "Settings",
@@ -50,24 +53,23 @@ class MainWindow(QMainWindow):
         # メインエリア
         self.stack = QStackedWidget()
 
+        # Dashboard
         dashboard = DashboardWidget()
         self.stack.addWidget(dashboard)
+
+        # Runner
+        runner_widget = RunnerWidget()
+        self.stack.addWidget(runner_widget)
 
         # Templates
         template_widget = TemplateWidget()
         self.stack.addWidget(template_widget)
 
-        # Snippets（今回は未実装のまま）
-        label = QLabel("Snippets")
-        label.setStyleSheet("font-size: 24px;")
-        label.setAlignment(Qt.AlignCenter)
+        # Snippets
+        snippets_widget = SnippetsWidget()
+        self.stack.addWidget(snippets_widget)
 
-        snippets_page = QWidget()
-        snippets_layout = QHBoxLayout(snippets_page)
-        snippets_layout.addWidget(label)
-
-        self.stack.addWidget(snippets_page)
-
+        # Settings
         settings = SettingsWidget()
         self.stack.addWidget(settings)
 
