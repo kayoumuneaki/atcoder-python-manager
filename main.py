@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 from ui.dashboard import DashboardWidget
 from ui.settings import SettingsWidget
 from core.database import Database
+from ui.template import TemplateWidget
 
 
 class MainWindow(QMainWindow):
@@ -52,19 +53,20 @@ class MainWindow(QMainWindow):
         dashboard = DashboardWidget()
         self.stack.addWidget(dashboard)
 
-        for page_name in [
-            "Templates",
-            "Snippets",
-        ]:
-            label = QLabel(page_name)
-            label.setStyleSheet("font-size: 24px;")
-            label.setAlignment(Qt.AlignCenter)
+        # Templates
+        template_widget = TemplateWidget()
+        self.stack.addWidget(template_widget)
 
-            page = QWidget()
-            layout = QHBoxLayout(page)
-            layout.addWidget(label)
+        # Snippets（今回は未実装のまま）
+        label = QLabel("Snippets")
+        label.setStyleSheet("font-size: 24px;")
+        label.setAlignment(Qt.AlignCenter)
 
-            self.stack.addWidget(page)
+        snippets_page = QWidget()
+        snippets_layout = QHBoxLayout(snippets_page)
+        snippets_layout.addWidget(label)
+
+        self.stack.addWidget(snippets_page)
 
         settings = SettingsWidget()
         self.stack.addWidget(settings)
