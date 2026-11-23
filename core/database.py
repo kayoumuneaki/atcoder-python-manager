@@ -106,3 +106,19 @@ class Database:
             """, (problem,))
 
             return cursor.fetchall()
+
+    def update_test_case(self, test_id, problem, input_data, expected_output):
+        with self.connect() as connection:
+            connection.execute("""
+                UPDATE test_cases
+                SET problem = ?, input = ?, output = ?
+                WHERE id = ?
+            """, (problem, input_data, expected_output, test_id))
+
+
+    def delete_test_case(self, test_id):
+        with self.connect() as connection:
+            connection.execute("""
+                DELETE FROM test_cases
+                WHERE id = ?
+            """, (test_id,))

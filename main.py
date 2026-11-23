@@ -17,6 +17,7 @@ from ui.template import TemplateWidget
 from ui.snippets import SnippetsWidget
 from ui.runner import RunnerWidget
 from ui.editor import EditorWidget
+from ui.test_cases import TestCasesWidget
 
 
 class MainWindow(QMainWindow):
@@ -47,7 +48,8 @@ class MainWindow(QMainWindow):
             "Editor",
             "Templates",
             "Snippets",
-            "Settings",
+            "Test Cases",
+            "Settings"
         ])
 
         self.navigation.setFixedWidth(180)
@@ -75,10 +77,14 @@ class MainWindow(QMainWindow):
         snippets_widget = SnippetsWidget()
         self.stack.addWidget(snippets_widget)
 
+        # TestCases
+        test_cases_widget = TestCasesWidget()
+        self.stack.addWidget(test_cases_widget)
+
         # Settings
         settings = SettingsWidget()
         self.stack.addWidget(settings)
-
+        
         # 左側とメインエリアを配置
         central_widget = QWidget()
         layout = QHBoxLayout(central_widget)
