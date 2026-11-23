@@ -1,3 +1,4 @@
+
 import sqlite3
 
 
@@ -41,3 +42,67 @@ class Database:
                 output TEXT
             )
         """)
+
+    def get_snippets(self):
+        with self.connect() as connection:
+            cursor = connection.execute("""
+                SELECT id, title, category, code
+                FROM snippets
+                ORDER BY title COLLATE NOCASE
+            """)
+            return cursor.fetchall()
+
+    def add_snippet(self, title, category, code):
+        with self.connect() as connection:
+            cursor = connection.execute("""
+                INSERT INTO snippets (title, category, code)
+                VALUES (?, ?, ?)
+            """, (title, category, code))
+            return cursor.lastrowid
+
+    def update_snippet(self, snippet_id, title, category, code):
+        with self.connect() as connection:
+            connection.execute("""
+                UPDATE snippets
+                SET title = ?, category = ?, code = ?
+                WHERE id = ?
+            """, (title, category, code, snippet_id))
+
+    def delete_snippet(self, snippet_id):
+        with self.connect() as connection:
+            connection.execute("""
+                DELETE FROM snippets
+                WHERE id = ?
+            """, (snippet_id,))
+
+    def add_test_case(self, problem, input_data, expected_output):
+        with self.connect() as connection:
+            cursor = connection.execute("""
+                INSERT INTO test_cases (problem, input, output)
+                VALUES (?, ?, ?)
+            """, (problem, input_data, expected_output))
+
+            return cursor.lastrowid
+
+
+    def get_test_cases(self):
+        with self.connect() as connection:
+            cursor = connection.execute("""
+                SELECT id, problem, input, output
+                FROM test_cases
+                ORDER BY id DESC
+            """)
+
+            return cursor.fetchall()
+
+
+    def get_test_cases_by_problem(self, problem):
+        with self.connect() as connection:
+            cursor = connection.execute("""
+                SELECT id, problem, input, output
+                FROM test_cases
+                WHERE problem = ?
+                ORDER BY id DESC
+            """, (problem,))
+
+            return cursor.fetchall()
