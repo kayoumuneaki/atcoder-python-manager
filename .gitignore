@@ -18,3 +18,5 @@ Thumbs.db
 
 # Local configuration
 config.local.json
+config.json
+database.db
