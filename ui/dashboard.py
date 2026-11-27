@@ -1,9 +1,11 @@
 
+import threading
 from datetime import datetime
 
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.DateAxisItem import DateAxisItem
 
+from PySide6.QtCore import Signal
 from PySide6.QtGui import QCursor
 from PySide6.QtWidgets import (
     QFormLayout,
@@ -18,8 +20,15 @@ from core.config import Config
 
 
 class DashboardWidget(QWidget):
+    # 別スレッドの通信結果を画面スレッドへ渡すためのシグナル
+    data_loaded = Signal(object)
+    load_failed = Signal(str)
+
     def __init__(self):
         super().__init__()
+
+        self.data_loaded.connect(self.on_data_loaded)
+        self.load_failed.connect(self.on_load_failed)
 
         self.rating_label = QLabel("-")
         self.highest_label = QLabel("-")
@@ -80,19 +89,41 @@ class DashboardWidget(QWidget):
             f"Loading data for {username}..."
         )
 
+        # 通信は別スレッドで行い、起動や画面操作を止めない
+        thread = threading.Thread(
+            target=self._fetch_user_data,
+            args=(username,),
+            daemon=True,
+        )
+        thread.start()
+
+    def _fetch_user_data(self, username):
+        """別スレッドで実行。結果はシグナルで画面側に渡す。"""
         try:
             data = AtCoderClient().get_user_info(username)
         except AtCoderAPIError as error:
-            self.status_label.setText(
-                f"Failed to load AtCoder data: {error}"
-            )
-            return
+            message = f"Failed to load AtCoder data: {error}"
+            result = None
         except Exception as error:
-            self.status_label.setText(
-                f"Unexpected error: {error}"
-            )
-            return
+            message = f"Unexpected error: {error}"
+            result = None
+        else:
+            message = None
+            result = data
 
+        try:
+            if result is None:
+                self.load_failed.emit(message)
+            else:
+                self.data_loaded.emit(result)
+        except RuntimeError:
+            # 通信中にウィンドウが閉じられた場合は何もしない
+            pass
+
+    def on_load_failed(self, message):
+        self.status_label.setText(message)
+
+    def on_data_loaded(self, data):
         self.rating_label.setText(str(data["rating"]))
         self.highest_label.setText(str(data["highest"]))
         self.color_label.setText(data["color"])
@@ -126,11 +157,15 @@ class DashboardWidget(QWidget):
         ]
 
         for lower, upper, color in bands:
+            # mkBrush は alpha 引数を無視するため、色そのものに透明度を設定する
+            band_color = pg.mkColor(color)
+            band_color.setAlpha(35)
+
             region = pg.LinearRegionItem(
                 values=[lower, upper],
                 orientation="horizontal",
                 movable=False,
-                brush=pg.mkBrush(color=color, alpha=35),
+                brush=pg.mkBrush(band_color),
                 pen=pg.mkPen(color=color, width=0.5),
             )
             region.setZValue(-10)
@@ -180,24 +215,19 @@ class DashboardWidget(QWidget):
             pen=pg.mkPen("#55AAFF", width=2),
         )
 
+        # 点はここで1回だけ作成し、各点にコンテスト情報を持たせる
         self.scatter = pg.ScatterPlotItem(
             x=x_values,
             y=y_values,
+            data=points,
             size=8,
             brush=pg.mkBrush("#FFFFFF"),
             pen=pg.mkPen("#55AAFF", width=1.5),
             hoverable=True,
             hoverSize=13,
             hoverBrush=pg.mkBrush("#FFD54F"),
+            tip=None,  # 標準の x/y ツールチップを無効化し、独自表示のみにする
         )
-
-        self.scatter.addPoints([
-            {
-                "pos": (point["x"], point["y"]),
-                "data": point,
-            }
-            for point in points
-        ])
 
         self.scatter.sigHovered.connect(
             self.on_point_hovered
@@ -217,11 +247,16 @@ class DashboardWidget(QWidget):
             padding=0.03,
         )
 
-    def on_point_hovered(self, points, event):
-        if not points:
+    def on_point_hovered(self, item, points, event):
+        # sigHovered は (item, points, ev) を渡す。points は numpy 配列
+        if len(points) == 0:
+            QToolTip.hideText()
             return
 
         point = points[0].data()
+        if not point:
+            return
+
         performance = point["performance"]
         performance_text = (
             str(performance)
