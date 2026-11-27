@@ -1,10 +1,13 @@
 import json
 from pathlib import Path
 
+# 起動フォルダに関係なく project/config.json を使う
+DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config.json"
+
 
 class Config:
-    def __init__(self, config_path="config.json"):
-        self.config_path = Path(config_path)
+    def __init__(self, config_path=None):
+        self.config_path = Path(config_path or DEFAULT_CONFIG_PATH)
 
     def load(self):
         if not self.config_path.exists():

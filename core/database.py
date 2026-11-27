@@ -1,10 +1,14 @@
 
 import sqlite3
+from pathlib import Path
+
+# 起動フォルダに関係なく project/database.db を使う
+DEFAULT_DB_PATH = Path(__file__).resolve().parent.parent / "database.db"
 
 
 class Database:
-    def __init__(self, db_path="database.db"):
-        self.db_path = db_path
+    def __init__(self, db_path=None):
+        self.db_path = str(db_path or DEFAULT_DB_PATH)
 
     def connect(self):
         return sqlite3.connect(self.db_path)

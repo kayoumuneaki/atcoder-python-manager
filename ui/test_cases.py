@@ -56,8 +56,13 @@ class TestCasesWidget(QWidget):
         self.output_editor = QTextEdit()
         layout.addWidget(self.output_editor)
 
-        # 保存ボタン
-        save_button = QPushButton("Save Changes")
+        # 新規作成ボタン（選択を解除して入力欄を空にする）
+        new_button = QPushButton("New Test Case")
+        new_button.clicked.connect(self.new_test_case)
+        layout.addWidget(new_button)
+
+        # 保存ボタン（未選択なら新規追加、選択中なら更新）
+        save_button = QPushButton("Save")
         save_button.clicked.connect(self.save_test_case)
         layout.addWidget(save_button)
 
@@ -120,34 +125,64 @@ class TestCasesWidget(QWidget):
                 )
                 break
 
-    def save_test_case(self):
-        if self.current_test_id is None:
-            QMessageBox.warning(
-                self,
-                "Warning",
-                "Please select a test case."
-            )
-            return
+    def new_test_case(self):
+        self.test_case_list.blockSignals(True)
+        self.test_case_list.clearSelection()
+        self.test_case_list.setCurrentRow(-1)
+        self.test_case_list.blockSignals(False)
 
-        problem = self.problem_input.text()
+        self.current_test_id = None
+        self.problem_input.clear()
+        self.input_editor.clear()
+        self.output_editor.clear()
+        self.problem_input.setFocus()
+
+    def save_test_case(self):
+        problem = self.problem_input.text().strip()
         input_data = self.input_editor.toPlainText()
         expected_output = self.output_editor.toPlainText()
 
-        self.db.update_test_case(
-            self.current_test_id,
-            problem,
-            input_data,
-            expected_output
-        )
+        if not problem:
+            QMessageBox.warning(
+                self,
+                "Warning",
+                "Please enter a problem name."
+            )
+            return
+
+        try:
+            if self.current_test_id is None:
+                self.db.add_test_case(
+                    problem,
+                    input_data,
+                    expected_output
+                )
+                message = "Test case added successfully."
+            else:
+                self.db.update_test_case(
+                    self.current_test_id,
+                    problem,
+                    input_data,
+                    expected_output
+                )
+                message = "Test case updated successfully."
+        except Exception as error:
+            QMessageBox.critical(
+                self,
+                "Database Error",
+                f"Failed to save test case:\n{error}"
+            )
+            return
 
         QMessageBox.information(
             self,
             "Saved",
-            "Test case updated successfully."
+            message
         )
 
         self.load_test_cases()
-        
+
+
     def delete_test_case(self):
         if self.current_test_id is None:
             QMessageBox.warning(
