@@ -28,7 +28,7 @@ class TestCasesWidget(QWidget):
         layout = QVBoxLayout()
 
         # タイトル
-        title = QLabel("Test Cases")
+        title = QLabel("テストケース")
         layout.addWidget(title)
 
         # 一覧
@@ -39,40 +39,40 @@ class TestCasesWidget(QWidget):
         layout.addWidget(self.test_case_list)
 
         # 問題名
-        layout.addWidget(QLabel("Problem"))
+        layout.addWidget(QLabel("問題名"))
 
         self.problem_input = QLineEdit()
         layout.addWidget(self.problem_input)
 
         # 入力データ
-        layout.addWidget(QLabel("Input"))
+        layout.addWidget(QLabel("入力"))
 
         self.input_editor = QTextEdit()
         layout.addWidget(self.input_editor)
 
         # 期待される出力
-        layout.addWidget(QLabel("Expected Output"))
+        layout.addWidget(QLabel("期待される出力"))
 
         self.output_editor = QTextEdit()
         layout.addWidget(self.output_editor)
 
         # 新規作成ボタン（選択を解除して入力欄を空にする）
-        new_button = QPushButton("New Test Case")
+        new_button = QPushButton("新規テストケース")
         new_button.clicked.connect(self.new_test_case)
         layout.addWidget(new_button)
 
         # 保存ボタン（未選択なら新規追加、選択中なら更新）
-        save_button = QPushButton("Save")
+        save_button = QPushButton("保存")
         save_button.clicked.connect(self.save_test_case)
         layout.addWidget(save_button)
 
         # 削除ボタン
-        delete_button = QPushButton("Delete Test Case")
+        delete_button = QPushButton("テストケースを削除")
         delete_button.clicked.connect(self.delete_test_case)
         layout.addWidget(delete_button)
 
         # 再読み込みボタン
-        reload_button = QPushButton("Reload List")
+        reload_button = QPushButton("一覧を再読み込み")
         reload_button.clicked.connect(self.load_test_cases)
         layout.addWidget(reload_button)
 
@@ -145,8 +145,8 @@ class TestCasesWidget(QWidget):
         if not problem:
             QMessageBox.warning(
                 self,
-                "Warning",
-                "Please enter a problem name."
+                "確認",
+                "問題名を入力してください。"
             )
             return
 
@@ -157,7 +157,7 @@ class TestCasesWidget(QWidget):
                     input_data,
                     expected_output
                 )
-                message = "Test case added successfully."
+                message = "テストケースを追加しました。"
             else:
                 self.db.update_test_case(
                     self.current_test_id,
@@ -165,18 +165,18 @@ class TestCasesWidget(QWidget):
                     input_data,
                     expected_output
                 )
-                message = "Test case updated successfully."
+                message = "テストケースを更新しました。"
         except Exception as error:
             QMessageBox.critical(
                 self,
-                "Database Error",
-                f"Failed to save test case:\n{error}"
+                "データベースエラー",
+                f"テストケースを保存できませんでした：\n{error}"
             )
             return
 
         QMessageBox.information(
             self,
-            "Saved",
+            "保存完了",
             message
         )
 
@@ -187,15 +187,15 @@ class TestCasesWidget(QWidget):
         if self.current_test_id is None:
             QMessageBox.warning(
                 self,
-                "Warning",
-                "Please select a test case."
+                "確認",
+                "テストケースを選択してください。"
             )
             return
 
         reply = QMessageBox.question(
             self,
-            "Confirm Delete",
-            "Are you sure you want to delete this test case?",
+            "削除の確認",
+            "このテストケースを削除しますか？",
             QMessageBox.StandardButton.Yes
             | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No
@@ -206,8 +206,8 @@ class TestCasesWidget(QWidget):
 
             QMessageBox.information(
                 self,
-                "Deleted",
-                "Test case deleted successfully."
+                "削除完了",
+                "テストケースを削除しました。"
             )
 
             self.load_test_cases()

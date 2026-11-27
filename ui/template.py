@@ -31,7 +31,7 @@ class TemplateWidget(QWidget):
         self.load_template_list()
 
     def create_ui(self):
-        title_label = QLabel("Python Templates")
+        title_label = QLabel("Python テンプレート")
         title_label.setStyleSheet(
             "font-size: 24px; font-weight: bold;"
         )
@@ -43,24 +43,24 @@ class TemplateWidget(QWidget):
 
         self.editor = QTextEdit()
         self.editor.setPlaceholderText(
-            "Select a template to edit."
+            "編集するテンプレートを選んでください。"
         )
         self.editor.setFontFamily("Consolas")
         self.editor.setFontPointSize(11)
 
-        self.save_button = QPushButton("Save")
+        self.save_button = QPushButton("保存")
         self.save_button.setEnabled(False)
         self.save_button.clicked.connect(self.save_template)
 
-        self.reload_button = QPushButton("Reload List")
+        self.reload_button = QPushButton("一覧を再読み込み")
         self.reload_button.clicked.connect(
             self.load_template_list
         )
 
-        self.new_button = QPushButton("New")
+        self.new_button = QPushButton("新規")
         self.new_button.clicked.connect(self.new_template)
 
-        self.copy_button = QPushButton("Copy Code")
+        self.copy_button = QPushButton("コードをコピー")
         self.copy_button.clicked.connect(self.copy_template)
 
         button_layout = QHBoxLayout()
@@ -114,8 +114,8 @@ class TemplateWidget(QWidget):
         except OSError as error:
             QMessageBox.warning(
                 self,
-                "Load Error",
-                f"Failed to load template:\n{error}",
+                "読み込みエラー",
+                f"テンプレートを読み込めませんでした：\n{error}",
             )
             return
 
@@ -129,8 +129,8 @@ class TemplateWidget(QWidget):
 
         answer = QMessageBox.question(
             self,
-            "Confirm Save",
-            f"Overwrite {self.current_file.name}?",
+            "保存の確認",
+            f"{self.current_file.name} を上書きしますか？",
             QMessageBox.StandardButton.Yes
             | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
@@ -147,22 +147,22 @@ class TemplateWidget(QWidget):
         except OSError as error:
             QMessageBox.critical(
                 self,
-                "Save Error",
-                f"Failed to save template:\n{error}",
+                "保存エラー",
+                f"テンプレートを保存できませんでした：\n{error}",
             )
             return
 
         QMessageBox.information(
             self,
-            "Saved",
-            f"{self.current_file.name} was saved successfully.",
+            "保存完了",
+            f"{self.current_file.name} を保存しました。",
         )
 
     def new_template(self):
         name, accepted = QInputDialog.getText(
             self,
-            "New Template",
-            "File name (e.g. dijkstra.py):",
+            "新しいテンプレート",
+            "ファイル名（例：dijkstra.py）：",
         )
 
         if not accepted:
@@ -183,8 +183,8 @@ class TemplateWidget(QWidget):
         ):
             QMessageBox.warning(
                 self,
-                "Invalid Name",
-                'File name cannot contain \\ / : * ? " < > |',
+                "使えない名前",
+                'ファイル名に \\ / : * ? " < > | は使えません。',
             )
             return
 
@@ -193,8 +193,8 @@ class TemplateWidget(QWidget):
         if file_path.exists():
             QMessageBox.warning(
                 self,
-                "Already Exists",
-                f"{name} already exists.",
+                "作成できません",
+                f"{name} は既に存在します。",
             )
             return
 
@@ -204,8 +204,8 @@ class TemplateWidget(QWidget):
         except OSError as error:
             QMessageBox.critical(
                 self,
-                "Create Error",
-                f"Failed to create template:\n{error}",
+                "作成エラー",
+                f"テンプレートを作成できませんでした：\n{error}",
             )
             return
 
@@ -226,8 +226,8 @@ class TemplateWidget(QWidget):
         if not code.strip():
             QMessageBox.warning(
                 self,
-                "Copy Error",
-                "There is no code to copy.",
+                "コピーエラー",
+                "コピーするコードがありません。",
             )
             return
 
@@ -235,6 +235,6 @@ class TemplateWidget(QWidget):
 
         QMessageBox.information(
             self,
-            "Copied",
-            "Code copied to clipboard.",
+            "コピー完了",
+            "コードをクリップボードにコピーしました。",
         )

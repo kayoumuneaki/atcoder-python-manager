@@ -1,3 +1,4 @@
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
     QFileDialog,
     QFormLayout,
@@ -13,6 +14,9 @@ from core.config import Config
 
 
 class SettingsWidget(QWidget):
+    # 設定保存後に発行。各画面はこれを受けて設定を読み直す
+    settings_saved = Signal()
+
     def __init__(self):
         super().__init__()
 
@@ -29,12 +33,12 @@ class SettingsWidget(QWidget):
         form_layout = QFormLayout()
 
         form_layout.addRow(
-            "AtCoder User Name",
+            "AtCoder ユーザー名",
             self.username_input
         )
 
         form_layout.addRow(
-            "Python Path",
+            "Python のパス",
             self.python_path_input
         )
 
@@ -44,7 +48,7 @@ class SettingsWidget(QWidget):
             self.working_folder_input
         )
 
-        browse_button = QPushButton("Browse")
+        browse_button = QPushButton("参照")
         browse_button.clicked.connect(
             self.select_working_folder
         )
@@ -52,11 +56,11 @@ class SettingsWidget(QWidget):
         folder_layout.addWidget(browse_button)
 
         form_layout.addRow(
-            "Working Folder",
+            "作業フォルダ",
             folder_layout
         )
 
-        save_button = QPushButton("Save")
+        save_button = QPushButton("保存")
         save_button.clicked.connect(
             self.save_settings
         )
@@ -70,7 +74,7 @@ class SettingsWidget(QWidget):
     def select_working_folder(self):
         folder = QFileDialog.getExistingDirectory(
             self,
-            "Select Working Folder"
+            "作業フォルダを選択"
         )
 
         if folder:
@@ -84,11 +88,12 @@ class SettingsWidget(QWidget):
         }
 
         self.config.save(settings)
+        self.settings_saved.emit()
 
         QMessageBox.information(
             self,
-            "Settings",
-            "Settings saved successfully."
+            "設定",
+            "設定を保存しました。"
         )
 
     def load_settings(self):

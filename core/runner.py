@@ -1,6 +1,7 @@
 
 import subprocess
 import tempfile
+import threading
 from pathlib import Path
 
 
@@ -9,6 +10,11 @@ class PythonRunner:
         self.python_path = python_path
         self.timeout = timeout
 
+        # 実行中の子プロセス（stop() で強制終了するために保持する）
+        self._process = None
+        self._stopped = False
+        self._lock = threading.Lock()
+
     def run(self, code, stdin=""):
         """Pythonコードを実行し、標準出力・標準エラーなどを返す。"""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -16,41 +22,16 @@ class PythonRunner:
             script_path.write_text(code, encoding="utf-8")
 
             try:
-                result = subprocess.run(
+                process = subprocess.Popen(
                     [self.python_path, "-X", "utf8", str(script_path)],
-                    input=stdin,
-                    capture_output=True,
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
                     text=True,
                     encoding="utf-8",
                     errors="replace",
-                    timeout=self.timeout,
                     cwd=temp_dir,
-                    check=False,
                 )
-
-                return {
-                    "stdout": result.stdout,
-                    "stderr": result.stderr,
-                    "returncode": result.returncode,
-                    "timed_out": False,
-                }
-
-            except subprocess.TimeoutExpired as error:
-                stdout = error.stdout or ""
-                stderr = error.stderr or ""
-
-                if isinstance(stdout, bytes):
-                    stdout = stdout.decode("utf-8", errors="replace")
-                if isinstance(stderr, bytes):
-                    stderr = stderr.decode("utf-8", errors="replace")
-
-                return {
-                    "stdout": stdout,
-                    "stderr": stderr,
-                    "returncode": None,
-                    "timed_out": True,
-                }
-
             except OSError as error:
                 return {
                     "stdout": "",
@@ -58,3 +39,43 @@ class PythonRunner:
                     "returncode": None,
                     "timed_out": False,
                 }
+
+            with self._lock:
+                self._process = process
+                self._stopped = False
+
+            try:
+                stdout, stderr = process.communicate(
+                    input=stdin,
+                    timeout=self.timeout,
+                )
+                timed_out = False
+
+            except subprocess.TimeoutExpired:
+                process.kill()
+                stdout, stderr = process.communicate()
+                timed_out = True
+
+            finally:
+                with self._lock:
+                    self._process = None
+                    stopped = self._stopped
+
+            return {
+                "stdout": stdout or "",
+                "stderr": stderr or "",
+                "returncode": None if timed_out else process.returncode,
+                "timed_out": timed_out,
+                # stop() で止められた場合は True
+                "stopped": stopped,
+            }
+
+    def stop(self):
+        """実行中の子プロセスがあれば強制終了する（停止ボタン・アプリ終了時）。"""
+        with self._lock:
+            process = self._process
+            if process is not None and process.poll() is None:
+                self._stopped = True
+
+        if process is not None and process.poll() is None:
+            process.kill()

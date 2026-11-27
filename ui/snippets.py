@@ -30,7 +30,7 @@ class SnippetsWidget(QWidget):
         self.load_snippets()
 
     def create_ui(self):
-        title_label = QLabel("Code Snippets")
+        title_label = QLabel("辞書登録")
         title_label.setStyleSheet(
             "font-size: 24px; font-weight: bold;"
         )
@@ -42,13 +42,14 @@ class SnippetsWidget(QWidget):
 
         self.title_input = QLineEdit()
         self.title_input.setPlaceholderText(
-            "Snippet name"
+            "辞書名"
         )
 
         self.category_input = QComboBox()
         self.category_input.setEditable(True)
         self.category_input.addItems([
             "Graph",
+            "DP",
             "Data Structure",
             "Math",
             "Search",
@@ -59,26 +60,26 @@ class SnippetsWidget(QWidget):
         self.code_editor = QTextEdit()
         self.code_editor.setFont(QFont("Consolas", 11))
         self.code_editor.setPlaceholderText(
-            "Write your Python code here."
+            "ここに Python コードを書きます。"
         )
 
         form_layout = QFormLayout()
-        form_layout.addRow("Name", self.title_input)
-        form_layout.addRow("Category", self.category_input)
+        form_layout.addRow("名前", self.title_input)
+        form_layout.addRow("カテゴリ", self.category_input)
 
-        self.new_button = QPushButton("New")
+        self.new_button = QPushButton("新規")
         self.new_button.clicked.connect(self.new_snippet)
 
-        self.save_button = QPushButton("Save")
+        self.save_button = QPushButton("保存")
         self.save_button.clicked.connect(self.save_snippet)
 
-        self.delete_button = QPushButton("Delete")
+        self.delete_button = QPushButton("削除")
         self.delete_button.clicked.connect(self.delete_snippet)
 
-        self.copy_button = QPushButton("Copy Code")
+        self.copy_button = QPushButton("コードをコピー")
         self.copy_button.clicked.connect(self.copy_code)
 
-        self.reload_button = QPushButton("Reload")
+        self.reload_button = QPushButton("再読み込み")
         self.reload_button.clicked.connect(self.load_snippets)
 
         button_layout = QHBoxLayout()
@@ -116,8 +117,8 @@ class SnippetsWidget(QWidget):
             self.snippet_list.blockSignals(False)
             QMessageBox.critical(
                 self,
-                "Database Error",
-                f"Failed to load snippets:\n{error}",
+                "データベースエラー",
+                f"辞書を読み込めませんでした：\n{error}",
             )
             return
 
@@ -158,8 +159,8 @@ class SnippetsWidget(QWidget):
         except Exception as error:
             QMessageBox.critical(
                 self,
-                "Database Error",
-                f"Failed to load snippet:\n{error}",
+                "データベースエラー",
+                f"辞書を読み込めませんでした：\n{error}",
             )
             return
 
@@ -181,16 +182,16 @@ class SnippetsWidget(QWidget):
         if not title:
             QMessageBox.warning(
                 self,
-                "Input Error",
-                "Please enter a snippet name.",
+                "入力エラー",
+                "辞書名を入力してください。",
             )
             return
 
         if not code.strip():
             QMessageBox.warning(
                 self,
-                "Input Error",
-                "Please enter some code.",
+                "入力エラー",
+                "コードを入力してください。",
             )
             return
 
@@ -209,31 +210,31 @@ class SnippetsWidget(QWidget):
         except Exception as error:
             QMessageBox.critical(
                 self,
-                "Database Error",
-                f"Failed to save snippet:\n{error}",
+                "データベースエラー",
+                f"辞書を保存できませんでした：\n{error}",
             )
             return
 
         self.load_snippets()
         QMessageBox.information(
             self,
-            "Saved",
-            "Snippet saved successfully.",
+            "保存完了",
+            "辞書を保存しました。",
         )
 
     def delete_snippet(self):
         if self.current_snippet_id is None:
             QMessageBox.warning(
                 self,
-                "Selection Error",
-                "Select a snippet to delete.",
+                "選択エラー",
+                "削除する辞書を選択してください。",
             )
             return
 
         answer = QMessageBox.question(
             self,
-            "Confirm Delete",
-            f"Delete '{self.title_input.text()}'?",
+            "削除の確認",
+            f"「{self.title_input.text()}」を削除しますか？",
             QMessageBox.StandardButton.Yes
             | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
@@ -247,16 +248,16 @@ class SnippetsWidget(QWidget):
         except Exception as error:
             QMessageBox.critical(
                 self,
-                "Database Error",
-                f"Failed to delete snippet:\n{error}",
+                "データベースエラー",
+                f"辞書を削除できませんでした：\n{error}",
             )
             return
 
         self.load_snippets()
         QMessageBox.information(
             self,
-            "Deleted",
-            "Snippet deleted successfully.",
+            "削除完了",
+            "辞書を削除しました。",
         )
 
     def copy_code(self):
@@ -265,8 +266,8 @@ class SnippetsWidget(QWidget):
         if not code.strip():
             QMessageBox.warning(
                 self,
-                "Copy Error",
-                "There is no code to copy.",
+                "コピーエラー",
+                "コピーするコードがありません。",
             )
             return
 
@@ -274,6 +275,6 @@ class SnippetsWidget(QWidget):
 
         QMessageBox.information(
             self,
-            "Copied",
-            "Code copied to clipboard.",
+            "コピー完了",
+            "コードをクリップボードにコピーしました。",
         )

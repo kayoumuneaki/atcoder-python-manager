@@ -6,6 +6,11 @@ class AtCoderAPIError(Exception):
     pass
 
 
+class AtCoderUserNotFoundError(AtCoderAPIError):
+    """指定したユーザー名が AtCoder に存在しない"""
+    pass
+
+
 class AtCoderClient:
     BASE_URL = "https://atcoder.jp"
 
@@ -15,7 +20,7 @@ class AtCoderClient:
     def get_user_history(self, username):
         if not username:
             raise AtCoderAPIError(
-                "AtCoder username is empty."
+                "AtCoder のユーザー名が空です。"
             )
 
         url = f"{self.BASE_URL}/users/{username}/history/json"
@@ -28,12 +33,12 @@ class AtCoderClient:
 
         except requests.RequestException as error:
             raise AtCoderAPIError(
-                "Failed to connect to AtCoder."
+                "AtCoder に接続できませんでした。"
             ) from error
 
         if response.status_code != 200:
             raise AtCoderAPIError(
-                f"AtCoder returned HTTP {response.status_code}."
+                f"AtCoder からエラーが返りました（HTTP {response.status_code}）。"
             )
 
         try:
@@ -41,11 +46,52 @@ class AtCoderClient:
 
         except ValueError as error:
             raise AtCoderAPIError(
-                "Invalid JSON response from AtCoder."
+                "AtCoder からの応答を読み取れませんでした。"
             ) from error
+
+    def user_exists(self, username):
+        """プロフィールページの有無でユーザーの存在を確認する。
+
+        履歴API は存在しないユーザーにも空の配列を返すため、
+        「参加履歴なし」と区別するのに使う。
+        """
+        url = f"{self.BASE_URL}/users/{username}"
+
+        try:
+            response = requests.get(url, timeout=self.timeout)
+        except requests.RequestException as error:
+            raise AtCoderAPIError(
+                "AtCoder に接続できませんでした。"
+            ) from error
+
+        if response.status_code == 404:
+            return False
+
+        if response.status_code != 200:
+            raise AtCoderAPIError(
+                f"AtCoder からエラーが返りました（HTTP {response.status_code}）。"
+            )
+
+        return True
 
     def get_user_info(self, username):
         history = self.get_user_history(username)
+
+        # 履歴が空のときだけ、ユーザーが存在するかを確認する
+        if not history and not self.user_exists(username):
+            raise AtCoderUserNotFoundError(
+                f"ユーザー「{username}」は AtCoder に存在しません。"
+            )
+
+        # 最終参加コンテスト（Unrated も含む）
+        last_contest = None
+        if history:
+            last = history[-1]
+            last_contest = {
+                "contest_name": last.get("ContestName", ""),
+                "end_time": last.get("EndTime"),
+                "is_rated": bool(last.get("IsRated")),
+            }
 
         rated_history = [
             item
@@ -55,13 +101,16 @@ class AtCoderClient:
         ]
 
         if not rated_history:
+            # Rated 参加がない場合、レート関連は None（画面では「-」表示）
             return {
                 "username": username,
-                "rating": 0,
-                "highest": 0,
-                "color": "gray",
+                "rating": None,
+                "highest": None,
+                "color": None,
                 "updated_at": None,
                 "performances": [],
+                "rated_count": 0,
+                "last_contest": last_contest,
             }
 
         latest = rated_history[-1]
@@ -91,6 +140,8 @@ class AtCoderClient:
             "color": self.get_rating_color(rating),
             "updated_at": latest.get("EndTime"),
             "performances": performances,
+            "rated_count": len(rated_history),
+            "last_contest": last_contest,
         }
 
     @staticmethod
